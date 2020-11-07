@@ -66,6 +66,16 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(resp['success'])
         self.assertFalse(resp['question']['id'] in [24,25,26,27,28])
 
+    def test_page_not_found(self):
+        resp=self.client.get('/api/questions/?page=1000').json
+        self.assertFalse(resp['success'])
+        self.assertEqual(resp['message'],'Not Found')
+
+    def test_category_not_found(self):
+        resp=self.client.get('/api/categories/10000000/questions/').json
+        self.assertFalse(resp['success'])
+        self.assertEqual(resp['message'],'Not Found')
+
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()

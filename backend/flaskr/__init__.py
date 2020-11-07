@@ -63,11 +63,10 @@ def create_app(test_config=None,db_path=database_path):
         'success':True,
         'questions':[q.format() for q in items],
         'total_questions':len(Question.query.all()),
-        'current_category':[q.category.type for q in items],
+        'current_category':[q.category.id for q in items],
         'categories':{c.id:c.type for c in Category.query.all()}
       })
     except Exception as e:
-      print(e)
       abort(404)
   '''
   Create an endpoint to DELETE question using a question ID. 
@@ -83,7 +82,6 @@ def create_app(test_config=None,db_path=database_path):
       'success':True
     })
     except Exception as e:
-      print(e)
       abort(404)
 
   '''
@@ -103,7 +101,6 @@ def create_app(test_config=None,db_path=database_path):
       question.insert()
       return jsonify({'success':True})
     except Exception as e:
-      print(e)
       abort(422)
 
   '''
@@ -115,7 +112,7 @@ def create_app(test_config=None,db_path=database_path):
   only question that include that string within their question. 
   Try using the word "title" to start. 
   '''
-  @app.route('/api/search/questions', methods=['POST'])
+  @app.route('/api/search/questions/', methods=['POST'])
   def search_questions():
     word=request.json.get('searchTerm','')
     result=Question.query.filter(Question.question.ilike('%{}%'.format(word))).all()
@@ -123,7 +120,7 @@ def create_app(test_config=None,db_path=database_path):
       'success':True,
       'questions':[q.format() for q in result],
       'total_questions':len(result),
-      'current_category':[q.category.type for q in result]
+      'current_category':[q.category.id for q in result]
     })
 
   ''' 
@@ -141,10 +138,9 @@ def create_app(test_config=None,db_path=database_path):
         'success':True,
         'questions':[q.format() for q in category.questions],
         'total_questions':len(category.questions),
-        'current_category':category.type
+        'current_category':category_id
       })
     except Exception as e:
-      print (e)
       abort (404)
 
   '''
