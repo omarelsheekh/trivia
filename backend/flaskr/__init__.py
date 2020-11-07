@@ -9,11 +9,13 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
+database_name = "trivia"
+database_path = "postgres:///{}".format(database_name)
 
-def create_app(test_config=None):
+def create_app(test_config=None,db_path=database_path):
   # create and configure the app
   app = Flask(__name__)
-  db=setup_db(app)
+  db=setup_db(app,db_path)
   migrate=Migrate(app,db)
   
   '''
@@ -180,7 +182,7 @@ def create_app(test_config=None):
   Create error handlers for all expected errors 
   including 404 and 422. 
   '''
-  @app.errorhandler(5000)
+  @app.errorhandler(500)
   def server_error():
     return jsonify({
       'success':False,

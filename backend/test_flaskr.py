@@ -12,18 +12,12 @@ class TriviaTestCase(unittest.TestCase):
 
     def setUp(self):
         """Define test variables and initialize app."""
-        self.app = create_app()
-        self.client = self.app.test_client
         self.database_name = "trivia_test"
         self.database_path = "postgres:///{}".format(self.database_name)
-        setup_db(self.app, self.database_path)
+        self.app=create_app(db_path=self.database_path)
+        self.client=self.app.test_client()
+        
 
-        # binds the app to the current context
-        with self.app.app_context():
-            self.db = SQLAlchemy()
-            self.db.init_app(self.app)
-            # create all tables
-            self.db.create_all()
     
     def tearDown(self):
         """Executed after reach test"""
@@ -33,6 +27,12 @@ class TriviaTestCase(unittest.TestCase):
     TODO
     Write at least one test for each test for successful operation and for expected errors.
     """
+    def test_get_categories(self):
+        resp=self.client.get('/api/categories/').json
+        self.assertTrue(resp['success'])
+        self.assertEqual(len(resp['categories']),6)
+
+    
 
 
 # Make the tests conveniently executable
