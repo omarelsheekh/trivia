@@ -9,7 +9,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
-database_name = "trivia"
+database_name = "trivia_test"
 database_path = "postgres:///{}".format(database_name)
 
 def create_app(test_config=None,db_path=database_path):
@@ -57,13 +57,13 @@ def create_app(test_config=None,db_path=database_path):
   @app.route('/api/questions/')
   def get_all_questions():
     page=int(request.args.get('page',1))
-    current_category=request.args.get('category',None)
     try:
+      items=Question.query.paginate(page,QUESTIONS_PER_PAGE).items
       return jsonify({
         'success':True,
-        'questions':[q.format() for q in Question.query.paginate(page,QUESTIONS_PER_PAGE).items],
+        'questions':[q.format() for q in items],
         'total_questions':len(Question.query.all()),
-        'current_category':current_category,
+        'current_category':[q.category.type for q in items],
         'categories':{c.id:c.type for c in Category.query.all()}
       })
     except Exception as e:
@@ -95,7 +95,7 @@ def create_app(test_config=None,db_path=database_path):
   the form will clear and the question will appear at the end of the last page
   of the questions list in the "List" tab.  
   '''
-  @app.route('/api/questions', methods=['POST'])
+  @app.route('/api/questions/', methods=['POST'])
   def insert_question():
     try:
       data= request.json
@@ -118,12 +118,12 @@ def create_app(test_config=None,db_path=database_path):
   @app.route('/api/search/questions', methods=['POST'])
   def search_questions():
     word=request.json.get('searchTerm','')
-    current_category=request.json.get('current_category',None)
     result=Question.query.filter(Question.question.ilike('%{}%'.format(word))).all()
     return jsonify({
+      'success':True,
       'questions':[q.format() for q in result],
       'total_questions':len(result),
-      'current_category':current_category
+      'current_category':[q.category.type for q in result]
     })
 
   ''' 
@@ -133,7 +133,7 @@ def create_app(test_config=None,db_path=database_path):
   categories in the left column will cause only questions of that 
   category to be shown. 
   '''
-  @app.route('/api/categories/<int:category_id>/questions')
+  @app.route('/api/categories/<int:category_id>/questions/', methods=['GET'])
   def get_questions_by_category(category_id):
     try:
       category=Category.query.get(category_id)
@@ -157,7 +157,7 @@ def create_app(test_config=None,db_path=database_path):
   one question at a time is displayed, the user is allowed to answer
   and shown whether they were correct or not. 
   '''
-  @app.route('/api/quizzes', methods=['POST'])
+  @app.route('/api/quizzes/', methods=['POST'])
   def quizzes():
     category_id=request.json.get('quiz_category',{'id':0})['id']
     previous_questions=request.json.get('previous_questions',[])
@@ -183,28 +183,28 @@ def create_app(test_config=None,db_path=database_path):
   including 404 and 422. 
   '''
   @app.errorhandler(500)
-  def server_error():
+  def server_error(error):
     return jsonify({
       'success':False,
       'message':'internal server error'
     })
 
   @app.errorhandler(400)
-  def bad_request():
+  def bad_request(error):
     return jsonify({
       'success':False,
       'message':'bad request'
     })
 
   @app.errorhandler(404)
-  def not_found():
+  def not_found(error):
     return jsonify({
       'success':False,
       'message':'Not Found'
     })
 
   @app.errorhandler(422)
-  def unprocessable():
+  def unprocessable(error):
     return jsonify({
       'success':False,
       'message':'Unprocessable Entity'
