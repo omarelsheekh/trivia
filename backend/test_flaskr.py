@@ -39,7 +39,7 @@ class TriviaTestCase(unittest.TestCase):
     def test_delete_question(self):
         self.test_question.insert()
         resp = self.client.delete(
-            '/api/questions/{}'.format(self.test_question.id)).json
+            '/api/questions/{}/'.format(self.test_question.id)).json
         self.assertTrue(resp['success'])
 
     def test_post_question(self):
@@ -52,10 +52,10 @@ class TriviaTestCase(unittest.TestCase):
                 'difficulty': 1}).json
         self.assertTrue(resp['success'])
 
-    def search_question(self):
+    def test_search_question(self):
         self.test_question.insert()
         resp = self.client.post(
-            '/api/search/questions',
+            '/api/search/questions/',
             json={
                 'searchTerm': 'test'}).json
         self.assertTrue(resp['success'])
@@ -84,6 +84,41 @@ class TriviaTestCase(unittest.TestCase):
         self.assertFalse(resp['success'])
         self.assertEqual(resp['message'], 'Not Found')
 
+    def test_get_categories_failure(self):
+        resp = self.client.post('/api/categories/')
+        self.assertNotEqual(resp.status_code, 200)
+
+    def test_delete_faliure(self):
+        resp = self.client.delete(
+            '/api/questions/999999999/').json
+        self.assertFalse(resp['success'])
+        self.assertEqual(resp['message'], 'Not Found')
+
+    def test_post_question_failure(self):
+        resp = self.client.post(
+            '/api/questions/',
+            json={
+                'question': 'POST_QUSTION',
+                'difficulty': 1}).json
+        self.assertFalse(resp['success'])
+        self.assertEqual(resp['message'], 'bad request')
+    
+    def test_search_question_failure(self):
+        self.test_question.insert()
+        resp = self.client.post(
+            '/api/search/questions/',
+            json={
+                'searchTerm': 'NotExistWord'}).json
+        self.assertTrue(resp['success'])
+        self.assertEqual(len(resp['questions']), 0)
+
+    def test_play_failure(self):
+        resp = self.client.post('/api/quizzes/', json={
+            'quiz_category': 'Bad Paramter',
+            'previous_questions': 'Bad Paramter'
+        }).json
+        self.assertFalse(resp['success'])
+        self.assertEqual(resp['message'], 'bad request')
 
 # Make the tests conveniently executable
 if __name__ == "__main__":

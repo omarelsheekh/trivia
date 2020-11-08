@@ -85,7 +85,8 @@ def create_app(test_config=None, db_path=database_path):
         try:
             Question.query.get(question_id).delete()
             return jsonify({
-                'success': True
+                'success': True,
+                'question_id': question_id
             })
         except Exception as e:
             abort(404)
@@ -111,7 +112,7 @@ def create_app(test_config=None, db_path=database_path):
             question.insert()
             return jsonify({'success': True})
         except Exception as e:
-            abort(422)
+            abort(400)
 
     '''
   Create a POST endpoint to get questions based on a search term.
@@ -167,6 +168,7 @@ def create_app(test_config=None, db_path=database_path):
   '''
     @app.route('/api/quizzes/', methods=['POST'])
     def quizzes():
+      try:
         category_id = request.json.get('quiz_category', {'id': 0})['id']
         previous_questions = request.json.get('previous_questions', [])
         questions = Question.query
@@ -185,6 +187,8 @@ def create_app(test_config=None, db_path=database_path):
             'question': question,
             'success': True
         })
+      except:
+        abort(400)
 
     '''
   Create error handlers for all expected errors
